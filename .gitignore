@@ -1,0 +1,7 @@
+.gitignore
+.idea
+wc-1.iml
+wc-1/.gradle
+wc-1/gradle
+wc-1/gradlew
+wc-1/gradlew.bat
