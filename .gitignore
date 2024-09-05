@@ -5,3 +5,12 @@ wc-1/.gradle
 wc-1/gradle
 wc-1/gradlew
 wc-1/gradlew.bat
+
+JsonProcessor/src/main/resources/*
+JsonProcessor/src/test/resources/*
+
+*.iml
+
+*/.gradle
+
+*/buil*
