@@ -6,12 +6,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,9 +78,41 @@ public class JsonProcessor {
     public static void combineAndSaveJsonArrays(String folderPath, String outputFilePath) throws IOException {
         Map<String, JsonArray> jsonArrays = JsonProcessor.readJsonFiles1(folderPath);
         JsonArray combinedArray = new JsonArray();
+        Map<String, JsonObject> categotyMap = new HashMap<>();
 
-        jsonArrays.values().forEach(
-                combinedArray::add
+//        jsonArrays.values().forEach(
+//                combinedArray::add
+//        );
+
+        int duaId = 0;
+        for(JsonArray entry : jsonArrays.values()) {
+            JsonObject categoryObject = new JsonObject();
+            if(entry.isJsonArray()){
+                for(JsonElement element : entry) {
+                    JsonObject item = element.getAsJsonObject();
+                    item.addProperty("id", duaId);
+                    combinedArray.add(item);
+                    categotyMap.put(item.get("categoryId").getAsString(),prepareCategory(item,categotyMap));
+                    duaId++;
+                }
+            }else {
+                JsonObject item = entry.getAsJsonObject();
+                item.addProperty("id", duaId);
+                combinedArray.add(item);
+                categotyMap.put(item.get("categoryId").getAsString(),prepareCategory(item,categotyMap));
+                duaId++;
+            }
+
+
+//            categoryObject.addProperty("category", entry.getKey());
+//            categoryObject.add("items", entry.getValue());
+//            categoryArray.add(categoryObject);
+        }
+
+        categotyMap.values().forEach(
+                x -> {
+                    System.out.println(x);
+                }
         );
 
        // print the combined array
@@ -92,6 +122,30 @@ public class JsonProcessor {
 
         try (FileWriter fileWriter = new FileWriter(outputFilePath)) {
             new Gson().toJson(combinedArray, fileWriter);
+        }
+    }
+
+    private static JsonObject prepareCategory(JsonObject item, Map<String, JsonObject> categotyMap) {
+        //JsonArray categoryArray = new JsonArray();
+
+        JsonArray duaArray;
+        JsonObject category = categotyMap.get(item.get("categoryId").getAsString());
+        if(category != null){
+            duaArray = category.getAsJsonArray("duaIds");
+           if(duaArray != null){
+               duaArray.add(item.get("id").getAsString());
+           }else {
+               duaArray = new JsonArray();
+               duaArray.add(item.get("id").getAsString());
+           }
+            return category;
+        }else{
+            JsonObject categoryObject = new JsonObject();
+            categoryObject.addProperty("categoryId", item.get("categoryId").getAsString());
+            duaArray = new JsonArray();
+            duaArray.add(item.get("id").getAsString());
+            categoryObject.add("duaIds", duaArray);
+            return categoryObject;
         }
     }
 }
